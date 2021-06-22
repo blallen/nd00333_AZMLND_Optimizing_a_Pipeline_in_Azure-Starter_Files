@@ -12,6 +12,8 @@ import pandas as pd
 from azureml.core.run import Run
 from azureml.data.dataset_factory import TabularDatasetFactory
 
+import joblib
+
 def clean_data(data):
     # Dict for cleaning data
     months = {"jan":1, "feb":2, "mar":3, "apr":4, "may":5, "jun":6, "jul":7, "aug":8, "sep":9, "oct":10, "nov":11, "dec":12}
@@ -69,8 +71,12 @@ def main():
     accuracy = model.score(x_test, y_test)
     run.log("accuracy", np.float(accuracy))
 
-    AUC = metrics.roc_auc_score(y_test, model.decision_function(x_test))
-    run.log("AUC", np.float(AUC))
+    AUC = metrics.roc_auc_score(y_test, model.decision_function(x_test), average = "weighted")
+    run.log("AUC_weighted", np.float(AUC))
+
+    # save model so can register it
+    os.makedirs("outputs", exist_ok=True)
+    joblib.dump(model, "outputs/model.joblib")
 
 if __name__ == '__main__':
     main()
